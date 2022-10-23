@@ -108,7 +108,11 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
-      - run: apk add --update tar gzip
+      - run: 
+          name: Add Dependencies
+          command: | 
+            sudo apt-get update
+            sudo apt-get install tar gzip
       - run:
           name: Ensure back-end infrastructure exists
           command: |
