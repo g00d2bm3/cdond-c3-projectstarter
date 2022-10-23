@@ -111,8 +111,8 @@ jobs:
       - run: 
           name: Add Dependencies
           command: | 
-            sudo apt-get update
-            sudo apt-get install tar gzip
+            apt-get update
+            apt-get install tar gzip
       - run:
           name: Ensure back-end infrastructure exists
           command: |
