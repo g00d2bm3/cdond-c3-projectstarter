@@ -103,57 +103,57 @@ jobs:
   #           npm audit fix --force
   #           npm audit --audit-level=critical
 
-  # deploy-infrastructure:
-  #   docker:
-  #     - image: amazon/aws-cli
-  #   steps:
-  #     - checkout
-  #     - run: yum install -y tar gzip
-  #     - run:
-  #         name: Ensure back-end infrastructure exists
-  #         command: |
-  #           aws cloudformation deploy \
-  #             --template-file .circleci/files/backend.yml \
-  #             --tags project=udapeople \
-  #             --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-  #             --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" 
-  #     - run:
-  #         name: Ensure front-end infrastructure exist
-  #         command: |
-  #           aws cloudformation deploy \
-  #             --template-file .circleci/files/frontend.yml \
-  #             --tags project=udapeople \
-  #             --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7} \
-  #             --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7} 
-  #     - run:
-  #         name: Add back-end ip to ansible inventory
-  #         command: |
-  #           aws ec2 describe-instances \
-  #             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-  #             --output text >> ~/project/.circleci/ansible/inventory.txt
-  #     - persist_to_workspace:
-  #         root: ~/
-  #         paths:
-  #           - project/.circleci/ansible/inventory.txt
-  #     - destroy-environment
+  deploy-infrastructure:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run: yum install -y tar gzip
+      - run:
+          name: Ensure back-end infrastructure exists
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/backend.yml \
+              --tags project=udapeople \
+              --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" 
+      - run:
+          name: Ensure front-end infrastructure exist
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+              --tags project=udapeople \
+              --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7} \
+              --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7} 
+      - run:
+          name: Add back-end ip to ansible inventory
+          command: |
+            aws ec2 describe-instances \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text >> ~/project/.circleci/ansible/inventory.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
+      - destroy-environment
 
-  # configure-infrastructure:
-  #   docker:
-  #     - image: python:3.11-rc-alpine
-  #   steps:
-  #     - checkout
-  #     - add_ssh_keys:
-  #           fingerprints: ["12:1f:88:42:97:5b:1f:17:e6:26:fb:72:e9:2a:77:12"] 
-  #     - run: apk add tar gzip
-  #     - attach_workspace:
-  #         at: ~/               
-  #     - run: apk add --update ansible 
-  #     - run:
-  #         name: Configure server
-  #         command: |
-  #           cd .circleci/ansible
-  #           ansible-playbook -i inventory.txt configure-server.yml   
-  #     - destroy-environment         
+  configure-infrastructure:
+    docker:
+      - image: python:3.11-rc-alpine
+    steps:
+      - checkout
+      - add_ssh_keys:
+            fingerprints: ["12:1f:88:42:97:5b:1f:17:e6:26:fb:72:e9:2a:77:12"] 
+      - run: apk add tar gzip
+      - attach_workspace:
+          at: ~/               
+      - run: apk add --update ansible 
+      - run:
+          name: Configure server
+          command: |
+            cd .circleci/ansible
+            ansible-playbook -i inventory.txt configure-server.yml   
+      - destroy-environment         
 
   run-migrations:
     docker:
@@ -198,22 +198,67 @@ jobs:
     docker:
       - image: amazon/aws-cli
     steps:
+      - run: yum install -y tar gzip      
+      - attach_workspace:
+          at: ~/      
       - checkout
       - run:
           name: Install dependencies
           command: |
-            # your code here
+            yum install -y python3
+            yum install -y ansible
+            yum install -y nodejs
+            yum install -y npm            
       - run:
           name: Get backend url
           command: |
-            # your code here
+            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress')
             export API_URL="http://${BACKEND_IP}:3030"
-            echo "${API_URL}"
+            echo "API_URL = ${API_URL}" 
+            echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+            cat frontend/.env
       - run:
           name: Deploy frontend objects
           command: |
-            # your code here
-      # Here's where you will add some code to rollback on failure  
+            cd frontend
+            npm install
+            npm run build
+            tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
+            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+      - destroy-environment
+
+  deploy-backend:
+    docker:
+      - image: python:3.11-rc-alpine
+    steps:
+      - checkout
+      - add_ssh_keys:
+            fingerprints: ["12:1f:88:42:97:5b:1f:17:e6:26:fb:72:e9:2a:77:12"] 
+      - run: yum install -y tar gzip 
+      - attach_workspace:
+          at: ~/               
+      - run:
+          name: Install dependencies
+          command: |
+            yum install -y python3
+            yum install -y ansible
+            yum install -y nodejs
+            yum install -y npm  
+      - run:
+          name: Deploy backend
+          command: |
+            cd backend
+            npm i
+            npm run build
+            cd ..
+            # Zip the directory
+            tar -C backend -czvf artifact.tar.gz .
+            cd .circleci/ansible
+            echo "Contents  of the inventory.txt file is -------"
+            cat inventory.txt
+            ansible-playbook -i inventory.txt deploy-backend.yml
+      - destroy-environment      
+
 workflows:
   default:
     jobs:
@@ -231,11 +276,16 @@ workflows:
       # - scan-backend:
       #     requires:
       #       - build-backend  
-      # - deploy-infrastructure 
-      # - configure-infrastructure:
-      #     requires:
-      #       - deploy-infrastructure
-      - run-migrations    
-      # - deploy-frontend:
-      #     requires:
-      #       - run-migrations  
+      - deploy-infrastructure 
+      - configure-infrastructure:
+          requires:
+            - deploy-infrastructure
+      - run-migrations:
+          requires: 
+            - configure-infrastructure    
+      - deploy-frontend:
+          requires:
+            - run-migrations
+      - deploy-backend:
+          requires:
+            - deploy-frontend  
