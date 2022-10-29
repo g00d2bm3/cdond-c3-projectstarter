@@ -227,8 +227,8 @@ jobs:
       - checkout
       - add_ssh_keys:
             fingerprints: ["12:1f:88:42:97:5b:1f:17:e6:26:fb:72:e9:2a:77:12"] 
-      - run: apt-get -y install python3
-      - run: apt-get -y install tar gzip
+      - run: sudo apt-get -y install python3
+      - run: sudo apt-get -y install tar gzip
       - attach_workspace:
           at: ~/  
       - restore_cache:
@@ -236,10 +236,10 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apt-get -y install awscli
-            apt-get -y install ansible 
-            apt-get -y install nodejs
-            apt-get -y install npm
+            sudo apt-get -y install awscli
+            sudo apt-get -y install ansible 
+            sudo apt-get -y install nodejs
+            sudo apt-get -y install npm
       - run:
           name: Deploy backend
           command: |
