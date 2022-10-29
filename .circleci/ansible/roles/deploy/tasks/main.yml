@@ -1,7 +1,7 @@
 ---
 - name: unarchive files
   unarchive:
-    src: /project/artifact.tar.gz
+    src: artifact.tar.gz
     dest: /home/ubuntu/
 
 - name: start app
