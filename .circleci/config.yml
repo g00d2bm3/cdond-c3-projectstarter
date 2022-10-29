@@ -131,6 +131,7 @@ jobs:
             aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --output text >> .circleci/ansible/inventory.txt
+            cat .circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
@@ -190,20 +191,17 @@ jobs:
 
   deploy-frontend:
     docker:
-      - image: amazon/aws-cli
+      - image: python:3.11-rc-alpine
     steps:      
       - checkout
-      - run: yum install -y tar gzip      
+      - run: apk add --update tar gzip      
       - attach_workspace:
           at: ~/         
-      - run:
-          name: Install dependencies
-          command: |
-            yum install -y python3
-            yum install -y ansible
-            yum install -y nodejs
-            yum install -y npm            
-      - run:
+      - run: apk add --update ansible
+      - run: apk add --update npm       
+      - run: apk add --update nodejs
+      - run: apk add --update aws-cli
+      - run: 
           name: Get backend url
           command: |
             export BACKEND_IP=$(aws ec2 describe-instances \
