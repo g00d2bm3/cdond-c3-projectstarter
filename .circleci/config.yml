@@ -130,8 +130,8 @@ jobs:
           command: |
             aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --output text >> project/.circleci/ansible/inventory.txt
-              cp project/.circleci/ansible/inventory.txt /.circleci/ansible/inventory.txt
+              --output text >> inventory.txt
+              cp inventory.txt /.circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
