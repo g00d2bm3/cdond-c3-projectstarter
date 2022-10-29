@@ -193,12 +193,12 @@ jobs:
       - image: amazon/aws-cli
     steps:      
       - checkout
+      - run: apk add --update tar gzip      
       - attach_workspace:
           at: ~/         
       - run:
           name: Install dependencies
           command: |
-            yum install -y tar gzip
             yum install -y python3
             yum install -y ansible
             yum install -y nodejs
@@ -229,13 +229,15 @@ jobs:
       - checkout
       - add_ssh_keys:
             fingerprints: ["12:1f:88:42:97:5b:1f:17:e6:26:fb:72:e9:2a:77:12"] 
+      - run: apk add --update tar gzip      
       - attach_workspace:
-          at: ~/               
+          at: ~/  
+      - restore_cache:
+          keys: [backend-build]                        
       - run:
           name: Install dependencies
           command: |
             apk add --update aws-cli
-            apk add --update tar gzip
             apk add --update python3
             apk add --update ansible
             apk add --update nodejs
