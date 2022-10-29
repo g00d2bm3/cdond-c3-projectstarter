@@ -6,7 +6,7 @@
 
 - name: start app
   shell: |
-    cd /home/ubuntu/backend/dist
+    cd /home/ubuntu/backend
     pm2 stop default
     pm2 start npm -- start  
 
