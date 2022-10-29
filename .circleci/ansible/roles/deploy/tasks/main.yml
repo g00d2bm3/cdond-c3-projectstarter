@@ -1,12 +1,12 @@
 ---
 - name: unarchive files
-unarchive:
-  src: /home/ubuntu/backend/artifact.tar.gz
-  dest: /home/ubuntu/backend
+  unarchive:
+    src: /home/ubuntu/backend/artifact.tar.gz
+    dest: /home/ubuntu/backend
 
 - name: start app
   shell: |
-  cd /home/ubuntu/backend
-  pm2 stop default
-  pm2 start npm -- start  
+    cd /home/ubuntu/backend
+    pm2 stop default
+    pm2 start npm -- start  
 
