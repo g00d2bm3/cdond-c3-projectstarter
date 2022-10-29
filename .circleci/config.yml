@@ -239,8 +239,6 @@ jobs:
             sudo apt-get update && sudo apt-get upgrade -y
             sudo apt-get -y install awscli
             sudo apt-get -y install ansible 
-            sudo apt-get -y install nodejs
-            sudo apt-get -y install npm
       - run:
           name: Deploy backend
           command: |
