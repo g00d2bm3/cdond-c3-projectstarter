@@ -130,7 +130,8 @@ jobs:
           command: |
             aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --output text >> ~/project/.circleci/ansible/inventory.txt
+              --output text >> project/.circleci/ansible/inventory.txt
+              cp project/.circleci/ansible/inventory.txt /.circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
@@ -167,7 +168,7 @@ jobs:
           aws-region: AWS_REGION      
       - add_ssh_keys:
             fingerprints: ["12:1f:88:42:97:5b:1f:17:e6:26:fb:72:e9:2a:77:12"] 
-      - run: apk add tar gzip
+      - run: yum install -y tar gzip
       - attach_workspace:
           at: ~/       
       - run:
@@ -182,15 +183,6 @@ jobs:
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
             curl https://kvdb.io/MzJ2xvA3RPdiEQJ9scZk3o/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
-            fi
-      - run:
-          name: check migration result
-          command: |
-            if curl --insecure https://kvdb.io/MzJ2xvA3RPdiEQJ9scZk3o/migration_${CIRCLE_WORKFLOW_ID:0:7} = '1'
-            then
-            exit 0
-            else
-            exit 1
             fi
       - destroy-environment
 
@@ -212,7 +204,8 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress')
+            export BACKEND_IP=$(aws ec2 describe-instances \
+            --query 'Reservations[*].Instances[*].PublicIpAddress')
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}" 
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
@@ -234,16 +227,16 @@ jobs:
       - checkout
       - add_ssh_keys:
             fingerprints: ["12:1f:88:42:97:5b:1f:17:e6:26:fb:72:e9:2a:77:12"] 
-      - run: yum install -y tar gzip 
+      - run: apk add --update tar gzip
       - attach_workspace:
           at: ~/               
       - run:
           name: Install dependencies
           command: |
-            yum install -y python3
-            yum install -y ansible
-            yum install -y nodejs
-            yum install -y npm  
+            apk add --update python3
+            apk add --update ansible
+            apk add --update nodejs
+            apk add --update npm
       - run:
           name: Deploy backend
           command: |
