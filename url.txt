@@ -1,2 +1,2 @@
 URL01 https://github.com/g00d2bm3/cdond-c3-projectstarter
-URL02 <s3 bucket url>
+URL02 http://udapeople-99b2f05.s3-website-us-east-1.amazonaws.com/
