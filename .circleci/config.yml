@@ -107,6 +107,7 @@ jobs:
             cd frontend
             npm install
             npm audit fix --audit-level=critical --force
+            npm audit fix --force
             npm audit --audit-level=critical
 
   scan-backend:
@@ -329,8 +330,8 @@ jobs:
             else
               return 1
             fi
-      - destroy-environment  
-      - revert-migrations   
+      # - destroy-environment  
+      # - revert-migrations   
 
   # cloudfront-update:
   #   docker:
