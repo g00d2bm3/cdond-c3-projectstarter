@@ -28,7 +28,7 @@ commands:
           name: Revert migrations
           when: on_fail
           command: |
-            SUCCESS=$(curl --insecure  https://kvdb.io/MzJ2xvA3RPdiEQJ9scZk3o/migration_migration_${CIRCLE_WORKFLOW_ID:0:7})
+            SUCCESS=$(curl --insecure  https://kvdb.io/MzJ2xvA3RPdiEQJ9scZk3o/migration_${CIRCLE_WORKFLOW_ID:0:7})
             # Logic for reverting the database state
             if (( $SUCCESS == 1 ));
             then
@@ -279,10 +279,10 @@ jobs:
 
   smoke-test:
     docker:
-      - image: circleci/node:13.8.0
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
-      - run: sudo apt-get -y install tar gzip
+      - run: apk add --update tar gzip  
       - attach_workspace:
           at: ~/    
       - restore_cache:
@@ -290,8 +290,8 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            sudo apt-get update && sudo apt-get upgrade -y
-            sudo apt-get -y install awscli
+            apk add --update aws-cli
+            apk add --update curl
       - run:
           name: Get backend url
           command: |
@@ -301,7 +301,7 @@ jobs:
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}" 
       # - run:
-      #     name: Backend smoke test.
+      #     name: Backend smoke test - can't get url to work
       #     command: |
       #       if curl "${API_URL}/api/status" | grep "ok"
       #       then
@@ -316,13 +316,12 @@ jobs:
             echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
-                # Change this to 0 after the job fails
-              return 1
+              return 0
             else
               return 1
             fi
-      - destroy-environment  
-      - revert-migrations       
+      # - destroy-environment  
+      # - revert-migrations       
 
 workflows:
   default:
