@@ -281,13 +281,12 @@ jobs:
             cd ..
             tar -C backend -czvf artifact.tar.gz .
             mv artifact.tar.gz .circleci/ansible/roles/deploy/files/
-
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
             export ANSIBLE_HOST_KEY_CHECKING=False
             ansible-playbook -i inventory.txt deploy-backend.yml
-      - destroy-environment   
+      # - destroy-environment   
 
   smoke-test:
     docker:
@@ -333,26 +332,26 @@ jobs:
       - destroy-environment  
       - revert-migrations   
 
-  cloudfront-update:
-    docker:
-      - image: amazon/aws-cli
-    steps:
-      - checkout
-      - run: yum install -y tar gzip
-      - attach_workspace:
-          at: ~/    
-      - restore_cache:
-          keys: [backend-build]         
-      - run:
-          name: Update cloudfront distribution
-          command: |
-            aws cloudformation deploy \
-              --template-file .circleci/files/cloudfront.yml \
-              --stack-name InitialStack \
-              --parameter-overrides WorkflowID="udapeople-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --tags project=udapeople
-      - destroy-environment  
-      - revert-migrations         
+  # cloudfront-update:
+  #   docker:
+  #     - image: amazon/aws-cli
+  #   steps:
+  #     - checkout
+  #     - run: yum install -y tar gzip
+  #     - attach_workspace:
+  #         at: ~/    
+  #     - restore_cache:
+  #         keys: [backend-build]         
+  #     - run:
+  #         name: Update cloudfront distribution
+  #         command: |
+  #           aws cloudformation deploy \
+  #             --template-file .circleci/files/cloudfront.yml \
+  #             --stack-name InitialStack \
+  #             --parameter-overrides WorkflowID="udapeople-${CIRCLE_WORKFLOW_ID:0:7}" \
+  #             --tags project=udapeople
+  #     - destroy-environment  
+  #     - revert-migrations         
 
 workflows:
   default:
@@ -379,5 +378,5 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-frontend, deploy-backend]  
-      - cloudfront-update:
-          requires: [smoke-test]  
+      # - cloudfront-update:
+      #     requires: [smoke-test]  
