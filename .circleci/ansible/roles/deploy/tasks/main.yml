@@ -9,9 +9,14 @@
     src: artifact.tar.gz
     dest: /home/ubuntu/backend
 
+- name: install dependencies
+  shell: | 
+    cd /home/ubuntu/backend
+    npm i
+
 - name: start app
   shell: |
-    cd /home/ubuntu/backend
+    cd /home/ubuntu/backend/dist
     pm2 stop default
-    pm2 start npm start /home/ubuntu/backend/dist/main.js --name
+    pm2 start main.js
 
