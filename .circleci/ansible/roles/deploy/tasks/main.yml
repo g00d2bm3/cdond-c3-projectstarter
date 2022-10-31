@@ -4,7 +4,7 @@
     path: /home/ubuntu/backend
     state: directory
 
--name: unarchive files
+- name: unarchive files
   unarchive:
     src: artifact.tar.gz
     dest: /home/ubuntu/backend
