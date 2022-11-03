@@ -39,6 +39,10 @@ commands:
 
 jobs:
   build-frontend:
+    filters:
+      branches:
+        only:
+          - dev
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -53,6 +57,10 @@ jobs:
             npm run build
 
   build-backend:
+    filters:
+      branches:
+        only:
+          - dev  
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -67,6 +75,10 @@ jobs:
              npm run build
 
   test-frontend:
+    filters:
+      branches:
+        only:
+          - dev  
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -81,6 +93,10 @@ jobs:
             npm run test
                 
   test-backend:  
+    filters:
+      branches:
+        only:
+          - dev  
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -95,6 +111,10 @@ jobs:
             npm run test    
 
   scan-frontend:
+    filters:
+      branches:
+        only:
+          - dev  
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -111,6 +131,10 @@ jobs:
             npm audit --audit-level=critical
 
   scan-backend:
+    filters:
+      branches:
+        only:
+          - dev  
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -378,7 +402,7 @@ jobs:
           command: |
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
-              aws s3 rb s3://udapeople-${OldWorkflowID} --recursive
+              aws s3 rm s3://udapeople-${OldWorkflowID} --recursive
               aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
               aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
             fi             
