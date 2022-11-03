@@ -38,11 +38,6 @@ commands:
             fi    
 
 jobs:
-  build-frontend:
-    filters:
-      branches:
-        only:
-          - dev
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -57,10 +52,6 @@ jobs:
             npm run build
 
   build-backend:
-    filters:
-      branches:
-        only:
-          - dev  
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -75,10 +66,6 @@ jobs:
              npm run build
 
   test-frontend:
-    filters:
-      branches:
-        only:
-          - dev  
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -93,10 +80,6 @@ jobs:
             npm run test
                 
   test-backend:  
-    filters:
-      branches:
-        only:
-          - dev  
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -111,10 +94,9 @@ jobs:
             npm run test    
 
   scan-frontend:
-    filters:
-      branches:
-        only:
-          - dev  
+    branches:
+      only:
+        - dev  
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -131,10 +113,9 @@ jobs:
             npm audit --audit-level=critical
 
   scan-backend:
-    filters:
-      branches:
-        only:
-          - dev  
+    branches:
+      only:
+        - dev  
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -151,6 +132,9 @@ jobs:
             npm audit --audit-level=critical
 
   deploy-infrastructure:
+    branches:
+      only:
+        - master    
     docker:
       - image: amazon/aws-cli
     steps:
@@ -186,6 +170,9 @@ jobs:
       - destroy-environment
 
   configure-infrastructure:
+    branches:
+      only:
+        - master  
     docker:
       - image: python:3.11-rc-alpine
     steps:
@@ -204,6 +191,9 @@ jobs:
       - destroy-environment         
 
   run-migrations:
+    branches:
+      only:
+        - master    
     docker:
       - image: python:3.11-rc-alpine
     steps:
@@ -237,6 +227,9 @@ jobs:
       - destroy-environment
 
   deploy-frontend:
+    branches:
+      only:
+        - master    
     docker:
       - image: python:3.11-rc-alpine
     steps:      
@@ -268,6 +261,9 @@ jobs:
       - destroy-environment
 
   deploy-backend:
+    branches:
+      only:
+        - master    
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -313,6 +309,9 @@ jobs:
       - destroy-environment   
 
   smoke-test:
+    branches:
+      only:
+        - master    
     docker:
       - image: python:3.11-rc-alpine
     steps:
@@ -357,6 +356,9 @@ jobs:
       - revert-migrations   
 
   cloudfront-update:
+    branches:
+      only:
+        - master    
     docker:
       - image: amazon/aws-cli
     steps:
@@ -378,6 +380,9 @@ jobs:
       - revert-migrations  
 
   cleanup:
+    branches:
+      only:
+        - master    
     docker:
       - image: amazon/aws-cli
     steps:
