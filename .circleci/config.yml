@@ -6,9 +6,6 @@ orbs:
 commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
-    # parameters:
-    #   workflow_id:
-    #     type: string 
     steps:
       - run:
           name: Destroy environments
@@ -20,9 +17,6 @@ commands:
 
   revert-migrations:
     description: Revert the last migration
-    # parameters:
-    #   workflow_id:
-    #     type: string      
     steps:
       - run:
           name: Revert migrations
@@ -95,9 +89,6 @@ jobs:
             npm run test    
 
   scan-frontend:
-    branches:
-      only:
-        - dev  
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -114,9 +105,6 @@ jobs:
             npm audit --audit-level=critical
 
   scan-backend:
-    branches:
-      only:
-        - dev  
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -132,10 +120,7 @@ jobs:
             npm audit fix --force
             npm audit --audit-level=critical
 
-  deploy-infrastructure:
-    branches:
-      only:
-        - master    
+  deploy-infrastructure:  
     docker:
       - image: amazon/aws-cli
     steps:
@@ -171,9 +156,6 @@ jobs:
       - destroy-environment
 
   configure-infrastructure:
-    branches:
-      only:
-        - master  
     docker:
       - image: python:3.11-rc-alpine
     steps:
@@ -191,10 +173,7 @@ jobs:
             ansible-playbook -i inventory.txt configure-server.yml   
       - destroy-environment         
 
-  run-migrations:
-    branches:
-      only:
-        - master    
+  run-migrations:  
     docker:
       - image: python:3.11-rc-alpine
     steps:
@@ -227,10 +206,7 @@ jobs:
             fi
       - destroy-environment
 
-  deploy-frontend:
-    branches:
-      only:
-        - master    
+  deploy-frontend:  
     docker:
       - image: python:3.11-rc-alpine
     steps:      
@@ -261,10 +237,7 @@ jobs:
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       - destroy-environment
 
-  deploy-backend:
-    branches:
-      only:
-        - master    
+  deploy-backend:  
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -309,10 +282,7 @@ jobs:
             ansible-playbook -i inventory.txt deploy-backend.yml
       - destroy-environment   
 
-  smoke-test:
-    branches:
-      only:
-        - master    
+  smoke-test:  
     docker:
       - image: python:3.11-rc-alpine
     steps:
@@ -356,10 +326,7 @@ jobs:
       - destroy-environment  
       - revert-migrations   
 
-  cloudfront-update:
-    branches:
-      only:
-        - master    
+  cloudfront-update:  
     docker:
       - image: amazon/aws-cli
     steps:
@@ -381,9 +348,6 @@ jobs:
       - revert-migrations  
 
   cleanup:
-    branches:
-      only:
-        - master    
     docker:
       - image: amazon/aws-cli
     steps:
