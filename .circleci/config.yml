@@ -65,7 +65,7 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
-          
+
   test-frontend:
     docker:
       - image: circleci/node:13.8.0
@@ -304,7 +304,7 @@ jobs:
             apk add --update aws-cli
             apk add --update curl
       - run:
-          name: Get backend url
+          name: Backend smoke test
           command: |
             export BACKEND_IP=$(aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
@@ -359,6 +359,10 @@ jobs:
             
             echo OldWorkflowID: "${OldWorkflowID}"
             echo CURRENT_WORKFLOW_ID: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - ./OldWorkflowID.txt 
       - destroy-environment  
       - revert-migrations  
 
@@ -373,22 +377,20 @@ jobs:
       - restore_cache:
           keys: [backend-build]                
       - run:  
-          name: Remove old stacks
+          name: Remove old environment
           command: |
-            # Fetch the OldWorkflowID          
-            export OldWorkflowID=$(aws cloudformation \
-              list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
-              --no-paginate --output text)
+            # Find Workflow IDs
+            OldWorkflowID=$(cat ./OldWorkflowID.txt)
             echo OldWorkflowID: "${OldWorkflowID}"
             echo CIRCLE_WORKFLOW_ID: "${CIRCLE_WORKFLOW_ID:0:7}"
 
-            # Fetch Stacks
+            # Find Stacks
             export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
               --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
             echo Stack names: "${STACKS[@]}" 
             if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
               then
-                aws s3 rm "s3://${OldWorkflowID}" --recursive
+                aws s3 rb "s3://${OldWorkflowID}" --force
                 aws cloudformation delete-stack --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
               else
                 echo "cannot cleanup"
