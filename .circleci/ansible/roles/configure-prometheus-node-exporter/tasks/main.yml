@@ -1,14 +1,32 @@
+- name: create node exporter user
+  user:
+    name: node_exporter
+    append: true 
+    shell: /usr/bin/nologin
+    system: true 
+    create_home: false 
+
+- name: create node exporter config dir
+  file: 
+    path: /etc/node_exporter
+    state: directory
+    owner: node_exporter
+    group: node_exporter
+
 - name: "install node exporter."
   unarchive:
-    src: https://github.com/prometheus/node_exporter/releases/download/v1.4.0/node_exporter-1.4.0.linux-amd64.tar.gz
+    src: "https://github.com/prometheus/node_exporter/releases/download/v1.4.0/node_exporter-1.4.0.linux-amd64.tar.gz"
     dest: /tmp
     remote_src: yes
+    validate_certs: no
 
 - name: "move binary to /usr/local/bin."
   become: true
   copy:
     src: /tmp/node_exporter-1.4.0.linux-amd64/node_exporter
     dest: /usr/local/bin/node_exporter
+    owner: node_exporter
+    group: node_exporter
     remote_src: yes
     mode: '0777'
     
@@ -16,8 +34,11 @@
   become: true
   copy:
     src: node_exporter.service
-    dest: /etc/systemd/system/
-
+    dest: /etc/systemd/system/node_exporter.service
+    owner: root
+    group: root
+    mode: 0755
+  
 - name: "enable node_exporter service"
   become: true
   systemd:
