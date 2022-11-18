@@ -1,2 +1,2 @@
 URL01 https://github.com/g00d2bm3/cdond-c3-projectstarter
-URL02 http://udapeople-ce12665.s3-website-us-east-1.amazonaws.com
+URL02 http://udapeople-a84d50f.s3-website-us-east-1.amazonaws.com
