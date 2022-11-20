@@ -228,18 +228,17 @@ jobs:
           name: Deploy frontend objects
           command: |
             export BACKEND_IP=$(aws ec2 describe-instances \
-            --query 'Reservations[*].Instances[*].PublicIpAddress')
-            export API_URL="http://${BACKEND_IP}:3030"
-            echo "API_URL = ${API_URL}" 
-            echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
-            echo ENVIRONMENT=production >> frontend/.env
-            echo NODE_ENV=production >> frontend/.env
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text)
+            echo "API_URL=http://${BACKEND_IP}:3030" >> frontend/.env
+            # echo ENVIRONMENT=production >> frontend/.env
+            # echo NODE_ENV=production >> frontend/.env
             cat frontend/.env
       - run:
           name: Deploy frontend objects
           working_directory: ./frontend
           command: |
-            cat .env
+            # cat .env
             npm install   
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
@@ -268,7 +267,7 @@ jobs:
       - run:
           name: Deploy backend
           command: |
-            echo Environment=production >> "backend/.env"
+            # echo Environment=production >> "backend/.env"
             echo TYPEORM_CONNECTION=postgres >> "backend/.env"
             echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> "backend/.env"
             echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> "backend/.env"
