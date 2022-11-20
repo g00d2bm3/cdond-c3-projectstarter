@@ -225,17 +225,19 @@ jobs:
       - run: apk add --update nodejs
       - run: apk add --update aws-cli
       - run: 
-          name: Get backend url
+          name: Deploy frontend objects
           command: |
             export BACKEND_IP=$(aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress')
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}" 
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+            echo ENVIRONMENT=production >> frontend/ .env
+            echo NODE_ENV=production >> frontend/.env
             cat frontend/.env
-      - run:
-          name: Deploy frontend objects
-          command: |
+      # - run:
+      #     name: Deploy frontend objects
+      #     command: |
             cd frontend
             npm install   
             npm run build
@@ -366,40 +368,40 @@ jobs:
       - destroy-environment  
       - revert-migrations  
 
-  # cleanup:
-  #   docker:
-  #     - image: amazon/aws-cli
-  #   steps:
-  #     - checkout
-  #     - run: yum install -y tar gzip
-  #     - attach_workspace:
-  #         at: ~/ 
-  #     - restore_cache:
-  #         keys: [backend-build]                
-  #     - run:  
-  #         name: Remove old environment
-  #         command: |
-  #           # Find Workflow IDs
-  #           # export OldWorkflowID=($(cat .circleci/files/oldworkflow.txt))
-  #           export OldWorkflowID=$(aws cloudformation \
-  #             list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
-  #             --no-paginate --output text)            
-  #           echo OldWorkflowID: "${OldWorkflowID}"
-  #           echo CIRCLE_WORKFLOW_ID: "${CIRCLE_WORKFLOW_ID:0:7}"
+  cleanup:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run: yum install -y tar gzip
+      - attach_workspace:
+          at: ~/ 
+      - restore_cache:
+          keys: [backend-build]                
+      - run:  
+          name: Remove old environment
+          command: |
+            # Find Workflow IDs
+            # export OldWorkflowID=($(cat .circleci/files/oldworkflow.txt))
+            export OldWorkflowID=$(aws cloudformation \
+              list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+              --no-paginate --output text)            
+            echo OldWorkflowID: "${OldWorkflowID}"
+            echo CIRCLE_WORKFLOW_ID: "${CIRCLE_WORKFLOW_ID:0:7}"
 
-  #           # Find Stacks
-  #           export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
-  #             --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
-  #           echo Stack names: "${STACKS[@]}" 
-  #           # if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
-  #           if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
-  #             then
-  #           aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
-  #               aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
-  #               aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
-  #             else
-  #               echo "cannot cleanup"
-  #           fi
+            # Find Stacks
+            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
+              --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
+            echo Stack names: "${STACKS[@]}" 
+            # if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
+            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+              then
+            aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+                aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+                aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+              else
+                echo "cannot cleanup"
+            fi
 
 workflows:
   default:
@@ -428,5 +430,5 @@ workflows:
           requires: [deploy-frontend, deploy-backend]  
       - cloudfront-update:
           requires: [smoke-test]  
-      # - cleanup:
-      #     requires: [cloudfront-update]    
+      - cleanup:
+          requires: [cloudfront-update]    
