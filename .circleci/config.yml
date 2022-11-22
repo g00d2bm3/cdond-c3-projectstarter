@@ -220,7 +220,7 @@ jobs:
           command: |
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
-              curl --insecure https://kvdb.io/MzJ2xvA3RPdiEQJ9scZk3o/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+              curl https://kvdb.io/MzJ2xvA3RPdiEQJ9scZk3o/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
@@ -286,24 +286,23 @@ jobs:
       - run:
           name: Deploy backend
           command: |
-            # echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
-            # echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> "backend/.env"
-            # echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
-            # echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> "backend/.env"
-            # echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> "backend/.env"
-            # echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "backend/.env"
-            # echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
-            # echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
-            # echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
-            # echo "show backend .env file contents"
-            cat backend/.env
+            echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
+            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> "backend/.env"
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
+            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> "backend/.env"
+            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> "backend/.env"
+            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "backend/.env"
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
+            echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
+            # cat backend/.env
             cd backend
-            ls -al
+            # ls -al
             npm i
             npm run build      
             cd ..           
             tar -C backend -czvf artifact.tar.gz .
-            mv artifact.tar.gz .circleci/ansible/roles/deploy/files/
+            # mv artifact.tar.gz .circleci/ansible/roles/deploy/files/
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
@@ -349,7 +348,8 @@ jobs:
               --filters Name=tag:aws:cloudformation:stack-name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
               --output text)
             export API_URL="http://${BACKEND_IP}:3030"
-            echo "${API_URL}"
+            echo "API_URL = ${API_URL}"
+            sleep 30s
             if curl "${API_URL}/api/status" | grep "ok"
             then
               return 0

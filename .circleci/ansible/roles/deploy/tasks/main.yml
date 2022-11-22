@@ -6,23 +6,15 @@
 
 - name: unarchive files
   unarchive:
-    src: artifact.tar.gz
+    src: ~/project/artifact.tar.gz
     dest: /home/ubuntu/backend/
 
-- name: install dependencies
+- name: start website
   shell: | 
     cd /home/ubuntu/backend/
     npm install
-
-- name: start app
-  shell: |
-    cd /home/ubuntu/backend/dist
     sudo pm2 stop default
-    sudo pm2 start main.js
-
-- name: "enable service"
-  shell: |
-    sudo su -c "env PATH=$PATH:/usr/local/bin pm2 startup systemd -u ubuntu --hp /home/ubuntu"
-    pm2 save    
+    sudo pm2 start main.js  
+  
 
 
