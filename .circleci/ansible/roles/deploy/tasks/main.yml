@@ -22,7 +22,7 @@
   
 - name: Start backend
   shell:  |
-    /usr/bin/pm2 start /home/ubuntu/app/dist/main.js --name backend -f
+    pm2 start /home/ubuntu/app/dist/main.js --name backend -f
   environment:
     ENVIRONMENT: production
     NODE_ENV: production
