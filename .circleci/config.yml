@@ -157,14 +157,14 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
               --tags project=udapeople \
-              --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7} \
-              --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7} 
+              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" 
       - run:
           name: Add back-end ip to ansible inventory
           command: |
             aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --filters Name=tag:aws:cloudformation:stack-name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
+              --filters "Name=tag,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --output text >> .circleci/ansible/inventory.txt
             cat .circleci/ansible/inventory.txt
       - persist_to_workspace:
@@ -200,8 +200,6 @@ jobs:
       - checkout
       - restore_cache:
           keys: [backend-build]        
-      - add_ssh_keys:
-            fingerprints: ["10:70:a7:a7:67:55:89:e0:00:8a:37:ec:33:da:6b:b9"] 
       - attach_workspace:
           at: ~/       
       - run: 
@@ -222,7 +220,7 @@ jobs:
           command: |
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
-            curl --insecure https://kvdb.io/MzJ2xvA3RPdiEQJ9scZk3o/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+              curl --insecure https://kvdb.io/MzJ2xvA3RPdiEQJ9scZk3o/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
@@ -246,11 +244,11 @@ jobs:
           command: |
             export BACKEND_IP=$(aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --filters Name=tag:aws:cloudformation:stack-name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
+              --filters "Name=tag,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
-            echo "API_URL=http://${BACKEND_IP}:3030" >> frontend/.env
+            echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
             cat frontend/.env
       - run:
           name: Deploy frontend objects
@@ -286,26 +284,26 @@ jobs:
             sudo apt-get -y install awscli
             sudo apt-get -y install ansible 
       - run:
-          name: Deploy backend
+          name: Build
           command: |
-            # echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
-            # echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> "backend/.env"
-            # echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
-            # echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> "backend/.env"
-            # echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> "backend/.env"
-            # echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "backend/.env"
-            # echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
-            # echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
-            # echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
-            # echo "show backend .env file contents"
-            cat backend/.env
             cd backend
-            ls -al
-            npm i
-            npm run build      
-            cd ..           
+            npm install
+            npm run build
+      - run:
+          name: Archve
+          command: | 
+            cd backend
             tar -C backend -czvf artifact.tar.gz .
-            mv artifact.tar.gz .circleci/ansible/roles/deploy/files/
+            ls
+            cd ..
+            cp backend/artifact.tar.gz .circleci/ansible/roles/deploy/files
+      - run:
+          name: Deploy 
+          command: |
+            export TYPEORM_MIGRATIONS_DIR=./migrations
+            export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}
+            export TYPEORM_MIGRATIONS=./migrations/*.ts
+            cd ..           
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
@@ -332,21 +330,6 @@ jobs:
             apk add --update aws-cli
             apk add --update curl
       - run:
-          name: Backend smoke test
-          command: |
-            export BACKEND_IP=$(aws ec2 describe-instances \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --filters Name=tag:aws:cloudformation:stack-name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
-              --output text)
-            export API_URL="http://${BACKEND_IP}:3030"
-            echo "${API_URL}"
-            if curl --connect-timeout 5 "${API_URL}/api/status" | grep "ok"
-            then
-              return 0
-            else
-              return 1
-            fi
-      - run:
           name: Frontend smoke test.
           command: |
             URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employees"            
@@ -356,7 +339,23 @@ jobs:
               return 0
             else
               return 1
+            fi            
+      - run:
+          name: Backend smoke test
+          command: |
+            export BACKEND_IP=$(aws ec2 describe-instances \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --filters "Name=tag,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --output text)
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+            if curl "${API_URL}/api/status" | grep "ok"
+            then
+              return 0
+            else
+              return 1
             fi
+
       # - destroy-environment:
       #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
       # - revert-migrations:
@@ -378,8 +377,6 @@ jobs:
             export OldWorkflowID=$(aws cloudformation \
               list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
               --no-paginate --output text)
-            echo $OldWorkflowID >> .circleci/files/oldworkflow.txt
-            cat .circleci/files/oldworkflow.txt
 
             aws cloudformation deploy \
               --template-file .circleci/files/cloudfront.yml \
@@ -388,7 +385,7 @@ jobs:
               --tags project=udapeople
             
             echo OldWorkflowID: "${OldWorkflowID}"
-            echo CURRENT_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
+            echo CURRENT_WORKFLOW_ID: "${CIRCLE_WORKFLOW_ID:0:7}"
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations:
@@ -408,7 +405,6 @@ jobs:
           name: Remove old environment
           command: |
             # Find Workflow IDs
-            # export OldWorkflowID=($(cat .circleci/files/oldworkflow.txt))
             export OldWorkflowID=$(aws cloudformation \
               list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
               --no-paginate --output text)            
@@ -419,9 +415,11 @@ jobs:
             export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
               --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
             echo Stack names: "${STACKS[@]}" 
-            # if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
-            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+
+            if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
+            # if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
+              echo "Remove Old Stacks"
               aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
               aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
               aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
