@@ -9,12 +9,13 @@
     src: ~/project/artifact.tar.gz
     dest: /home/ubuntu/backend/
 
-- name: start website
+- name: install dependencies
   shell: | 
     cd /home/ubuntu/backend/
     npm install
+
+- name: start app
+  shell: |
+    cd /home/ubuntu/backend/dist
     sudo pm2 stop default
-    sudo pm2 start main.js  
-  
-
-
+    sudo pm2 start main.js
