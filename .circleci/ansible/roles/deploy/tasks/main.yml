@@ -1,21 +1,37 @@
 ---
-- name: create app directory
-  file: 
-    path: /home/ubuntu/backend/
+- name: Creates App directory
+  file:
+    path: ~/app
     state: directory
-
-- name: unarchive files
-  unarchive:
+    
+- name: Upload app 
+  copy:
     src: ~/project/artifact.tar.gz
-    dest: /home/ubuntu/backend/
+    dest: "~/app"
 
-- name: install dependencies
-  shell: | 
-    cd /home/ubuntu/backend/
-    npm install
-
-- name: start app
+- name: Install dependencies
+  become: true
   shell: |
-    cd /home/ubuntu/backend/dist
-    sudo pm2 stop default
-    sudo pm2 start main.js
+    curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+    apt-get install -y nodejs
+    apt-get install gcc g++ make -y
+    npm install -g npm
+    npm install -g pm2
+    cd /home/ubuntu/app
+    tar xvzf /home/ubuntu/app/artifact.tar.gz
+  
+- name: Start backend
+  shell:  |
+    /usr/bin/pm2 start /home/ubuntu/app/dist/main.js --name backend -f
+  environment:
+    ENVIRONMENT: production
+    NODE_ENV: production
+    TYPEORM_CONNECTION: postgres
+    TYPEORM_MIGRATIONS_DIR: ~/src/migrations
+    TYPEORM_MIGRATIONS: ~/src/migrations/*.ts
+    TYPEORM_ENTITIES: ~/src/modules/domain/**/*.entity.ts
+    TYPEORM_HOST: udapeople-prod.c5qgzjqwg3ed.us-east-1.rds.amazonaws.com
+    TYPEORM_PORT: 5432
+    TYPEORM_USERNAME: postgres
+    TYPEORM_PASSWORD: post1234
+    TYPEORM_DATABASE: postgres
