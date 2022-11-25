@@ -38,7 +38,7 @@ commands:
             if (( $SUCCESS == 1 ));
             then
                 cd ~/project/backend
-                npm install -g npm@8
+                npm install -g npm@6.14.4
                 npm run migration:revert
             fi    
 
@@ -85,7 +85,7 @@ jobs:
           name: Build front-end
           command: |
             cd frontend
-            sudo npm install -g npm@8 
+            sudo npm install -g npm@6.14.4 
             npm run build
       - save_cache:
           paths: [frontend/node_modules]
@@ -103,7 +103,7 @@ jobs:
           name: Back-end build
           command: |
             cd backend
-            sudo npm install -g npm@8          
+            sudo npm install -g npm@6.14.4          
             npm run build
       - save_cache:
           paths: [backend/node_modules]
@@ -121,7 +121,7 @@ jobs:
           name: Front-end test
           command: |
             cd frontend
-            sudo npm install -g npm@8
+            sudo npm install -g npm@6.14.4
             npm run test
                 
   test-backend:  
@@ -136,7 +136,7 @@ jobs:
           name: Back-end test
           command: |
             cd backend
-            sudo npm install -g npm@8
+            sudo npm install -g npm@6.14.4
             npm run test    
 
   scan-frontend:
@@ -151,7 +151,7 @@ jobs:
           name: Front-end scan
           command: |
             cd frontend
-            sudo npm install -g npm@8
+            sudo npm install -g npm@6.14.4
             sudo npm audit fix --audit-level=critical --force
             sudo npm audit fix --force
             sudo npm audit fix --force
@@ -170,7 +170,7 @@ jobs:
           name: Back-end scan
           command: |
             cd backend
-            sudo npm install -g npm@8
+            sudo npm install -g npm@6.14.4
             sudo npm audit fix --audit-level=critical --force
             sudo npm audit fix --force
             sudo npm audit fix --force
@@ -247,7 +247,7 @@ jobs:
           name: Run migrations
           command: |
             cd backend
-            sudo npm install -g npm@8   
+            sudo npm install -g npm@6.14.4   
             npm run migrations > migrations_dump.txt         
       - run:
           name: Send migration results to kvdb
@@ -286,7 +286,7 @@ jobs:
           working_directory: ./frontend
           command: |
             cat .env
-            sudo npm install -g npm@8 
+            sudo npm install -g npm@6.14.4 
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
@@ -325,7 +325,7 @@ jobs:
             # echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
             cat backend/.env
             cd backend
-            sudo npm install -g npm@8             
+            sudo npm install -g npm@6.14.4             
             npm run build      
             cd ..           
             tar -C backend -czvf artifact.tar.gz .
