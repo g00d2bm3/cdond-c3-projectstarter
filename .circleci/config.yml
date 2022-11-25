@@ -232,7 +232,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update --no-cache curl gzip nodejs npm aws-cli tar      
+            apk add --update --no-cache sudo curl gzip nodejs aws-cli tar      
       - run: 
           name: Get Backend IP
           command: |
@@ -249,7 +249,7 @@ jobs:
           working_directory: ./frontend
           command: |
             cat .env
-            npm install -g npm@8 
+            sudo npm install -g npm@8 
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
@@ -272,7 +272,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update --no-cache curl gzip tar nodejs npm aws-cli ansible      
+            apk add --update --no-cache sudo curl gzip tar nodejs npm aws-cli ansible      
       - run:
           name: Deploy backend
           command: |
@@ -289,7 +289,7 @@ jobs:
             # echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
             cat backend/.env
             cd backend
-            npm install -g npm@8          
+            sudo npm install -g npm@8          
             npm run build      
             cd ..           
             tar -C backend -czvf artifact.tar.gz .
