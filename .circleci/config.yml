@@ -152,12 +152,11 @@ jobs:
           command: |
             cd frontend
             sudo npm install -g npm@8
-            npm audit fix --audit-level=critical --force
-            npm audit fix --force
-            npm audit --audit-level=critical
-            npm audit fix --audit-level=critical --force
-            npm audit fix --force
-            npm audit --audit-level=critical            
+            sudo npm audit fix --audit-level=critical --force
+            sudo npm audit fix --force
+            sudo npm audit fix --force
+            sudo npm audit --audit-level=critical
+           
 
   scan-backend:
     docker:
@@ -172,12 +171,11 @@ jobs:
           command: |
             cd backend
             sudo npm install -g npm@8
-            npm audit fix --audit-level=critical --force
-            npm audit fix --force
-            npm audit --audit-level=critical
-            npm audit fix --audit-level=critical --force
-            npm audit fix --force
-            npm audit --audit-level=critical            
+            sudo npm audit fix --audit-level=critical --force
+            sudo npm audit fix --force
+            sudo npm audit fix --force
+            sudo npm audit --audit-level=critical
+           
 
   deploy-infrastructure:  
     docker:
@@ -224,8 +222,7 @@ jobs:
       - install_ansible
       - install_awscli
       - add_ssh_keys:
-            fingerprints: ["10:70:a7:a7:67:55:89:e0:00:8a:37:ec:33:da:6b:b9"] 
-      - run: apk add tar gzip
+            fingerprints: ["10:70:a7:a7:67:55:89:e0:00:8a:37:ec:33:da:6b:b9"]
       - attach_workspace:
           at: ~/               
       - run:
