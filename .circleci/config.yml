@@ -232,7 +232,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update --no-cache sudo curl gzip nodejs aws-cli tar      
+            apk add --update --no-cache sudo curl gzip nodejs npm aws-cli tar      
       - run: 
           name: Get Backend IP
           command: |
