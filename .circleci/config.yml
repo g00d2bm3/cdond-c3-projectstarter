@@ -45,7 +45,7 @@ commands:
 jobs:
   build-frontend:
     docker:
-      - image: cimg/node:18.12.1
+      - image: cimg/node:19.1.0-browsers
     steps:
       - checkout
       - restore_cache:
@@ -55,9 +55,9 @@ jobs:
           command: |
             cd frontend
             npm install
+            npm audit --audit-level=critical
             npm audit fix --audit-level=critical --force
-            npm audit fix --force
-            npm audit --audit-level=critical            
+            npm audit fix --force           
             npm run build
       - save_cache:
           paths: [frontend/node_modules]
@@ -65,7 +65,7 @@ jobs:
 
   build-backend:
     docker:
-      - image: cimg/node:18.12.1
+      - image: cimg/node:19.1.0-browsers
     steps:
       - checkout
       - restore_cache:
@@ -75,9 +75,9 @@ jobs:
           command: |
             cd backend
             npm install
+            npm audit --audit-level=critical
             npm audit fix --audit-level=critical --force
-            npm audit fix --force
-            npm audit --audit-level=critical             
+            npm audit fix --force            
             npm run build
       - save_cache:
           paths: [backend/node_modules]
@@ -85,7 +85,7 @@ jobs:
 
   test-frontend:
     docker:
-      - image: cimg/node:18.12.1
+      - image: cimg/node:19.1.0-browsers
     steps:
       - checkout 
       - restore_cache:
@@ -95,14 +95,14 @@ jobs:
           command: |
             cd frontend
             npm install
+            npm audit --audit-level=critical
             npm audit fix --audit-level=critical --force
             npm audit fix --force
-            npm audit --audit-level=critical
             npm run test
                 
   test-backend:  
     docker:
-      - image: cimg/node:18.12.1
+      - image: cimg/node:19.1.0-browsers
     steps:
       - checkout 
       - restore_cache:
@@ -112,14 +112,14 @@ jobs:
           command: |
             cd backend
             npm install
+            npm audit --audit-level=critical
             npm audit fix --audit-level=critical --force
             npm audit fix --force
-            npm audit --audit-level=critical
             npm run test    
 
   scan-frontend:
     docker:
-      - image: cimg/node:18.12.1
+      - image: cimg/node:19.1.0-browsers
     steps:
       - checkout
       - restore_cache:
@@ -129,13 +129,14 @@ jobs:
           command: |
             cd frontend
             npm install
+            npm audit --audit-level=critical
             npm audit fix --audit-level=critical --force
             npm audit fix --force
             npm audit --audit-level=critical
 
   scan-backend:
     docker:
-      - image: cimg/node:18.12.1
+      - image: cimg/node:19.1.0-browsers
     steps:
       - checkout
       - restore_cache:
@@ -145,6 +146,7 @@ jobs:
           command: |
             cd backend
             npm install
+            npm audit --audit-level=critical
             npm audit fix --audit-level=critical --force
             npm audit fix --force
             npm audit --audit-level=critical
@@ -278,7 +280,7 @@ jobs:
 
   deploy-backend:  
     docker:
-      - image: cimg/node:18.12.1
+      - image: cimg/node:19.1.0-browsers
     steps:
       - checkout
       - add_ssh_keys:
