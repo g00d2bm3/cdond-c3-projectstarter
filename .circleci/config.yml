@@ -45,7 +45,7 @@ commands:
 jobs:
   build-frontend:
     docker:
-      - image: cimg/node:19.1.0-browsers
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -55,9 +55,6 @@ jobs:
           command: |
             cd frontend
             npm install
-            npm audit --audit-level=critical
-            npm audit fix --audit-level=critical --force
-            npm audit fix --force           
             npm run build
       - save_cache:
           paths: [frontend/node_modules]
@@ -65,7 +62,7 @@ jobs:
 
   build-backend:
     docker:
-      - image: cimg/node:19.1.0-browsers
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -74,10 +71,7 @@ jobs:
           name: Back-end build
           command: |
             cd backend
-            npm install
-            npm audit --audit-level=critical
-            npm audit fix --audit-level=critical --force
-            npm audit fix --force            
+            npm install          
             npm run build
       - save_cache:
           paths: [backend/node_modules]
@@ -85,7 +79,7 @@ jobs:
 
   test-frontend:
     docker:
-      - image: cimg/node:19.1.0-browsers
+      - image: circleci/node:13.8.0
     steps:
       - checkout 
       - restore_cache:
@@ -95,14 +89,11 @@ jobs:
           command: |
             cd frontend
             npm install
-            npm audit --audit-level=critical
-            npm audit fix --audit-level=critical --force
-            npm audit fix --force
             npm run test
                 
   test-backend:  
     docker:
-      - image: cimg/node:19.1.0-browsers
+      - image: circleci/node:13.8.0
     steps:
       - checkout 
       - restore_cache:
@@ -112,14 +103,11 @@ jobs:
           command: |
             cd backend
             npm install
-            npm audit --audit-level=critical
-            npm audit fix --audit-level=critical --force
-            npm audit fix --force
             npm run test    
 
   scan-frontend:
     docker:
-      - image: cimg/node:19.1.0-browsers
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -129,14 +117,13 @@ jobs:
           command: |
             cd frontend
             npm install
-            npm audit --audit-level=critical
             npm audit fix --audit-level=critical --force
             npm audit fix --force
             npm audit --audit-level=critical
 
   scan-backend:
     docker:
-      - image: cimg/node:19.1.0-browsers
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -146,7 +133,6 @@ jobs:
           command: |
             cd backend
             npm install
-            npm audit --audit-level=critical
             npm audit fix --audit-level=critical --force
             npm audit fix --force
             npm audit --audit-level=critical
@@ -241,18 +227,15 @@ jobs:
 
   deploy-frontend:  
     docker:
-      - image: python:3.11-rc-alpine
-    steps:      
+      - image: cimg/base:stable
+    steps:
       - checkout
-      - run: apk add --update tar gzip  
+      - install_awscli
+      - install_nodejs
       - restore_cache:
           keys: [frontend-build]             
       - attach_workspace:
           at: ~/         
-      - run: apk add --update ansible
-      - run: apk add --update npm       
-      - run: apk add --update nodejs
-      - run: apk add --update aws-cli
       - run: 
           name: Get Backend IP
           command: |
@@ -280,23 +263,19 @@ jobs:
 
   deploy-backend:  
     docker:
-      - image: cimg/node:19.1.0-browsers
+    docker:
+      - image: cimg/base:stable
     steps:
       - checkout
+      - install_awscli
+      - install_nodejs
+      - install_ansible
       - add_ssh_keys:
             fingerprints: ["10:70:a7:a7:67:55:89:e0:00:8a:37:ec:33:da:6b:b9"] 
-      - run: sudo apt-get -y install python3
-      - run: sudo apt-get -y install tar gzip
       - attach_workspace:
           at: ~/  
       - restore_cache:
           keys: [backend-build]                        
-      - run:
-          name: Install dependencies
-          command: |
-            sudo apt-get update && sudo apt-get upgrade -y
-            sudo apt-get -y install awscli
-            sudo apt-get -y install ansible 
       - run:
           name: Deploy backend
           command: |
@@ -313,12 +292,10 @@ jobs:
             # echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
             cat backend/.env
             cd backend
-            # ls -al
             npm i
             npm run build      
             cd ..           
             tar -C backend -czvf artifact.tar.gz .
-            # mv artifact.tar.gz .circleci/ansible/roles/deploy/files/
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
