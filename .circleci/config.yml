@@ -263,7 +263,6 @@ jobs:
 
   deploy-backend:  
     docker:
-    docker:
       - image: cimg/base:stable
     steps:
       - checkout
