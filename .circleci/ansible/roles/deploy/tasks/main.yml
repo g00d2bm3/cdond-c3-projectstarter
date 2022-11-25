@@ -35,8 +35,3 @@
     TYPEORM_USERNAME: postgres
     TYPEORM_PASSWORD: post1234
     TYPEORM_DATABASE: postgres
-
-- name: start npm
-  shell: |
-    cd /home/ubuntu/app
-    npm start run
