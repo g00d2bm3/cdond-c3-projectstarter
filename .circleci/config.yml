@@ -402,7 +402,7 @@ jobs:
           command: |
             export OldWorkflowID=$(aws cloudformation \
               list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
-              --no-paginate --output text)
+              --no-paginate --output text >> project/oldworkflowid.txt )
 
             aws cloudformation deploy \
               --template-file .circleci/files/cloudfront.yml \
@@ -411,7 +411,12 @@ jobs:
               --tags project=udapeople
             
             echo OldWorkflowID: "${OldWorkflowID}"
+            cat project/oldworkflowid.txt
             echo CURRENT_WORKFLOW_ID: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/oldworkflowid.txt            
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations:
@@ -424,18 +429,18 @@ jobs:
       - checkout
       - run: yum install -y tar gzip
       - attach_workspace:
-          at: ~/ 
-      - restore_cache:
-          keys: [backend-build]                
+          at: ~/             
       - run:  
           name: Remove old environment
           command: |
             # Find Workflow IDs
-            export OldWorkflowID=$(aws cloudformation \
-              list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
-              --no-paginate --output text)            
-            echo OldWorkflowID: "${OldWorkflowID}"
+            # export OldWorkflowID=$(aws cloudformation \
+            #   list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+            #   --no-paginate --output text)            
+            # echo OldWorkflowID: "${OldWorkflowID}"
             echo CIRCLE_WORKFLOW_ID: "${CIRCLE_WORKFLOW_ID:0:7}"
+            echo OldWorkflowID = project/oldworkflowid.txt
+            echo OldWorkflowID = "${OldWorkflowID}"
 
             # Find Stacks
             export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
