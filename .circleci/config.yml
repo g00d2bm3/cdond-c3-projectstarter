@@ -54,7 +54,7 @@ jobs:
           name: Build front-end
           command: |
             cd frontend
-            npm install -g npm@8
+            sudo npm install -g npm@8
             npm run build
       - save_cache:
           paths: [frontend/node_modules]
@@ -71,7 +71,7 @@ jobs:
           name: Back-end build
           command: |
             cd backend
-            npm install -g npm@8        
+            sudo npm install -g npm@8        
             npm run build
       - save_cache:
           paths: [backend/node_modules]
@@ -88,7 +88,7 @@ jobs:
           name: Front-end test
           command: |
             cd frontend
-            npm install -g npm@8
+            sudo npm install -g npm@8
             npm run test
                 
   test-backend:  
@@ -102,7 +102,7 @@ jobs:
           name: Back-end test
           command: |
             cd backend
-            npm install -g npm@8
+            sudo npm install -g npm@8
             npm run test    
 
   scan-frontend:
@@ -116,7 +116,7 @@ jobs:
           name: Front-end scan
           command: |
             cd frontend
-            npm install -g npm@8
+            sudo npm install -g npm@8
             npm audit fix --audit-level=critical --force
             npm audit fix --audit-level=critical --force
             npm audit --audit-level=critical  
@@ -132,7 +132,7 @@ jobs:
           name: Back-end scan
           command: |
             cd backend
-            npm install -g npm@8
+            sudo npm install -g npm@8
             npm audit fix --audit-level=critical --force
             npm audit fix --audit-level=critical --force
             npm audit --audit-level=critical         
@@ -208,7 +208,7 @@ jobs:
           name: Run migrations
           command: |
             cd backend
-            npm install -g npm@8   
+            sudo npm install -g npm@8   
             npm run migrations > migrations_dump.txt         
       - run:
           name: Send migration results to kvdb
