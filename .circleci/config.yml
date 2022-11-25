@@ -38,19 +38,9 @@ commands:
             if (( $SUCCESS == 1 ));
             then
                 cd ~/project/backend
-                npm install -g npm@6.14.4
+                npm install -g npm@8
                 npm run migration:revert
-            fi    
-
-  install_awscli:
-    description: install aws cli v2
-    steps:
-      - run:
-          name: Install aws cli
-          command: |
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install          
+            fi            
 
 jobs:
   build-frontend:
@@ -64,7 +54,7 @@ jobs:
           name: Build front-end
           command: |
             cd frontend
-            sudo npm install -g npm@8
+            npm install -g npm@8
             npm run build
       - save_cache:
           paths: [frontend/node_modules]
@@ -81,7 +71,7 @@ jobs:
           name: Back-end build
           command: |
             cd backend
-            sudo npm install -g npm@8        
+            npm install -g npm@8        
             npm run build
       - save_cache:
           paths: [backend/node_modules]
@@ -98,7 +88,7 @@ jobs:
           name: Front-end test
           command: |
             cd frontend
-            sudo npm install -g npm@8
+            npm install -g npm@8
             npm run test
                 
   test-backend:  
@@ -112,7 +102,7 @@ jobs:
           name: Back-end test
           command: |
             cd backend
-            sudo npm install -g npm@8
+            npm install -g npm@8
             npm run test    
 
   scan-frontend:
@@ -126,7 +116,7 @@ jobs:
           name: Front-end scan
           command: |
             cd frontend
-            sudo npm install -g npm@8
+            npm install -g npm@8
             npm audit fix --audit-level=critical --force
             npm audit fix --audit-level=critical --force
             npm audit --audit-level=critical  
@@ -142,7 +132,7 @@ jobs:
           name: Back-end scan
           command: |
             cd backend
-            sudo npm install -g npm@8
+            npm install -g npm@8
             npm audit fix --audit-level=critical --force
             npm audit fix --audit-level=critical --force
             npm audit --audit-level=critical         
@@ -210,7 +200,6 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - install_awscli
       - restore_cache:
           keys: [backend-build]        
       - attach_workspace:
@@ -219,7 +208,7 @@ jobs:
           name: Run migrations
           command: |
             cd backend
-            sudo npm install -g npm@6.14.4   
+            npm install -g npm@8   
             npm run migrations > migrations_dump.txt         
       - run:
           name: Send migration results to kvdb
@@ -243,7 +232,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update --no-cache gzip nodejs npm aws-cli tar      
+            apk add --update --no-cache curl gzip nodejs npm aws-cli tar      
       - run: 
           name: Get Backend IP
           command: |
@@ -283,7 +272,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update --no-cache gzip tar nodejs npm aws-cli ansible      
+            apk add --update --no-cache curl gzip tar nodejs npm aws-cli ansible      
       - run:
           name: Deploy backend
           command: |
@@ -300,7 +289,7 @@ jobs:
             # echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
             cat backend/.env
             cd backend
-            sudo npm install -g npm@6.14.4             
+            npm install -g npm@8          
             npm run build      
             cd ..           
             tar -C backend -czvf artifact.tar.gz .
@@ -319,8 +308,7 @@ jobs:
     docker:
       - image: python:3.11-rc-alpine
     steps:
-      - checkout
-      - run: apk add --update tar gzip  
+      - checkout  
       - attach_workspace:
           at: ~/    
       - restore_cache:
@@ -328,8 +316,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update aws-cli
-            apk add --update curl
+            apk add --update --no-cache curl gzip nodejs npm aws-cli tar
       - run:
           name: Frontend smoke test.
           command: |
