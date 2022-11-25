@@ -55,6 +55,7 @@ jobs:
           command: |
             cd frontend
             npm install
+            npm update
             npm run build
       - save_cache:
           paths: [frontend/node_modules]
@@ -72,6 +73,7 @@ jobs:
           command: |
              cd backend
              npm install
+             npm update
              npm run build
       - save_cache:
           paths: [backend/node_modules]
@@ -89,6 +91,7 @@ jobs:
           command: |
             cd frontend
             npm install
+            npm update
             npm run test
                 
   test-backend:  
@@ -103,6 +106,7 @@ jobs:
           command: |
             cd backend
             npm install
+            npm update
             npm run test    
 
   scan-frontend:
@@ -117,6 +121,7 @@ jobs:
           command: |
             cd frontend
             npm install
+            npm update
             npm audit fix --audit-level=critical --force
             npm audit fix --force
             npm audit --audit-level=critical
@@ -133,6 +138,7 @@ jobs:
           command: |
             cd backend
             npm install
+            npm update
             npm audit fix --audit-level=critical --force
             npm audit fix --force
             npm audit --audit-level=critical
