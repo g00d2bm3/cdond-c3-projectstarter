@@ -155,6 +155,9 @@ jobs:
             npm audit fix --audit-level=critical --force
             npm audit fix --force
             npm audit --audit-level=critical
+            npm audit fix --audit-level=critical --force
+            npm audit fix --force
+            npm audit --audit-level=critical            
 
   scan-backend:
     docker:
@@ -172,6 +175,9 @@ jobs:
             npm audit fix --audit-level=critical --force
             npm audit fix --force
             npm audit --audit-level=critical
+            npm audit fix --audit-level=critical --force
+            npm audit fix --force
+            npm audit --audit-level=critical            
 
   deploy-infrastructure:  
     docker:
@@ -212,15 +218,16 @@ jobs:
 
   configure-infrastructure:
     docker:
-      - image: python:3.11-rc-alpine
+      - image: cimg/base:stable
     steps:
       - checkout
+      - install_ansible
+      - install_awscli
       - add_ssh_keys:
             fingerprints: ["10:70:a7:a7:67:55:89:e0:00:8a:37:ec:33:da:6b:b9"] 
       - run: apk add tar gzip
       - attach_workspace:
           at: ~/               
-      - run: apk add --update ansible 
       - run:
           name: Configure server
           command: |
@@ -231,20 +238,14 @@ jobs:
 
   run-migrations:  
     docker:
-      - image: python:3.11-rc-alpine
+      - image: circleci/node:13.8.0
     steps:
       - checkout
+      - install_awscli
       - restore_cache:
           keys: [backend-build]        
       - attach_workspace:
-          at: ~/       
-      - run: 
-          name: Install Dependencies
-          command: |
-            apk add --update aws-cli
-            apk add --update tar gzip
-            apk add --update nodejs
-            apk add --update npm                
+          at: ~/                     
       - run:
           name: Run migrations
           command: |
