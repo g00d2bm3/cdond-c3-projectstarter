@@ -58,7 +58,7 @@ commands:
       - run:
           name: Install nodejs 18
           command: |
-            curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+            curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
             sudo apt install -y nodejs
 
   install_ansible:
@@ -160,6 +160,8 @@ jobs:
             npm audit fix --audit-level=critical --force
             npm audit fix --force
             npm audit --audit-level=critical
+            npm audit fix --audit-level=critical --force
+            npm audit fix --force
 
   scan-backend:
     docker:
@@ -178,6 +180,8 @@ jobs:
             npm audit fix --audit-level=critical --force
             npm audit fix --force
             npm audit --audit-level=critical
+            npm audit fix --audit-level=critical --force
+            npm audit fix --force
 
   deploy-infrastructure:  
     docker:
@@ -294,7 +298,9 @@ jobs:
           working_directory: ./frontend
           command: |
             cat .env
-            npm install   
+            npm install 
+            npm audit fix --audit-level=critical --force
+            npm audit fix --force  
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
@@ -333,7 +339,9 @@ jobs:
             # echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"
             cat backend/.env
             cd backend
-            npm i
+            npm install
+            npm audit fix --audit-level=critical --force
+            npm audit fix --force             
             npm run build      
             cd ..           
             tar -C backend -czvf artifact.tar.gz .
