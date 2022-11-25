@@ -58,7 +58,7 @@ commands:
       - run:
           name: Install nodejs 18
           command: |
-            curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+            curl -fsSL https://deb.nodesource.com/setup_19.x | sudo -E bash -
             sudo apt install -y nodejs
 
   install_ansible:
@@ -75,9 +75,11 @@ commands:
 jobs:
   build-frontend:
     docker:
-      - image: circleci/node:13.8.0
+      # - image: circleci/node:13.8.0
+      - image: cimg/base:stable
     steps:
       - checkout
+      - install_nodejs      
       - restore_cache:
           keys: [frontend-build]      
       - run:
@@ -92,9 +94,11 @@ jobs:
 
   build-backend:
     docker:
-      - image: circleci/node:13.8.0
+      # - image: circleci/node:13.8.0
+      - image: cimg/base:stable      
     steps:
       - checkout
+      - install_nodejs      
       - restore_cache:
           keys: [backend-build]      
       - run:
@@ -109,9 +113,11 @@ jobs:
 
   test-frontend:
     docker:
-      - image: circleci/node:13.8.0
+      # - image: circleci/node:13.8.0
+      - image: cimg/base:stable      
     steps:
       - checkout 
+      - install_nodejs      
       - restore_cache:
           keys: [frontend-build] 
       - run:
@@ -123,9 +129,11 @@ jobs:
                 
   test-backend:  
     docker:
-      - image: circleci/node:13.8.0
+      # - image: circleci/node:13.8.0
+      - image: cimg/base:stable      
     steps:
       - checkout 
+      - install_nodejs      
       - restore_cache:
           keys: [backend-build]       
       - run:
@@ -137,9 +145,11 @@ jobs:
 
   scan-frontend:
     docker:
-      - image: circleci/node:13.8.0
+      # - image: circleci/node:13.8.0
+      - image: cimg/base:stable      
     steps:
       - checkout
+      - install_nodejs      
       - restore_cache:
           keys: [frontend-build]       
       - run:
@@ -153,9 +163,11 @@ jobs:
 
   scan-backend:
     docker:
-      - image: circleci/node:13.8.0
+      # - image: circleci/node:13.8.0
+      - image: cimg/base:stable      
     steps:
       - checkout
+      - install_nodejs      
       - restore_cache:
           keys: [backend-build]       
       - run:
