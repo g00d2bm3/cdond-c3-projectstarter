@@ -1,27 +1,23 @@
 ---
-- name: Creates App directory
+- name: "Creates App directory"
   file:
     path: ~/app
     state: directory
     
-- name: Upload app 
-  copy:
-    src: ~/project/artifact.tar.gz
-    dest: "~/app"
+- name: "Unarchive app" 
+  unarchive:
+    src: artifact.tar.gz
+    dest: ~/app
 
 - name: Install dependencies
   become: true
   shell: |
-    curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash -
-    apt-get install -y nodejs
-    apt-get install gcc g++ make -y
-    npm install -g npm@6.14.4
-    npm install -g pm2
-    cd /home/ubuntu/app
-    tar xvzf /home/ubuntu/app/artifact.tar.gz
+    cd ~/app
+    npm i
   
 - name: Start backend
   shell:  |
+    pm2 stop default
     pm2 start /home/ubuntu/app/dist/main.js --name backend -f
   environment:
     ENVIRONMENT: production
@@ -30,8 +26,14 @@
     TYPEORM_MIGRATIONS_DIR: ~/src/migrations
     TYPEORM_MIGRATIONS: ~/src/migrations/*.ts
     TYPEORM_ENTITIES: ~/src/modules/domain/**/*.entity.ts
-    TYPEORM_HOST: udapeople-prod.c5qgzjqwg3ed.us-east-1.rds.amazonaws.com
+    TYPEORM_HOST: postgres.c5qgzjqwg3ed.us-east-1.rds.amazonaws.com
     TYPEORM_PORT: 5432
     TYPEORM_USERNAME: postgres
     TYPEORM_PASSWORD: post1234
     TYPEORM_DATABASE: postgres
+  register: execute_node
+
+- name: 'configure pm2 to start as service'
+  become: true
+  shell: |
+    env PATH=$PATH:/usr/local/bin pm2 startup systemd -u ubuntu --hp /home/ubuntu    
