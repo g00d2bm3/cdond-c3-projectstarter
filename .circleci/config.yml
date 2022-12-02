@@ -214,7 +214,6 @@ jobs:
           name: Run migrations
           command: |
             cd backend
-            npm install   
             echo ENVIRONMENT=production >> "backend/.env"
             echo NODE_ENV=production >> "backend/.env"
             echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
@@ -225,7 +224,8 @@ jobs:
             echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "backend/.env"
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
             echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
-            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"   
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"       
+            npm install    
             npm run migrations > migrations_dump.txt         
       - run:
           name: Send migration results to kvdb
@@ -294,8 +294,6 @@ jobs:
           name: Deploy backend
           command: |
             cd backend
-            npm install         
-            npm run build  
             echo ENVIRONMENT=production >> "backend/.env"
             echo NODE_ENV=production >> "backend/.env"
             echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
@@ -306,7 +304,10 @@ jobs:
             echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> "backend/.env"
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
             echo TYPEORM_PORT=$TYPEORM_PORT >> "backend/.env"
-            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env"        
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> "backend/.env" 
+            npm install         
+            npm run build  
+       
             cd ..
             tar -C backend -czvf artifact.tar.gz .
             mkdir -p ~/project/.circleci/ansible/roles/deploy/files/
