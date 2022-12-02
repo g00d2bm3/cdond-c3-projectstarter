@@ -214,7 +214,7 @@ jobs:
           name: Run migrations
           command: |
             cd backend
-            echo ENVIRONMENT=production >> "backend/.env"
+            echo ENVIRONMENT=production > "backend/.env"
             echo NODE_ENV=production >> "backend/.env"
             echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
             echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> "backend/.env"
@@ -234,6 +234,9 @@ jobs:
             then
               curl --insecure https://kvdb.io/MzJ2xvA3RPdiEQJ9scZk3o/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
+      - save_cache:
+          paths: [backend/node_modules]
+          key: backend-build            
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
 
@@ -294,7 +297,7 @@ jobs:
           name: Deploy backend
           command: |
             cd backend
-            echo ENVIRONMENT=production >> "backend/.env"
+            echo ENVIRONMENT=production > "backend/.env"
             echo NODE_ENV=production >> "backend/.env"
             echo TYPEORM_HOST=$TYPEORM_HOST >> "backend/.env"
             echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> "backend/.env"
