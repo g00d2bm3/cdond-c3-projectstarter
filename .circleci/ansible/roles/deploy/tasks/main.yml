@@ -13,15 +13,16 @@
   become: true
   shell: |
     cd ~/app
-    npm i
+    npm install
+    npm run build
+    pm2 start npm -- start
   
-- name: "Start Backend"
-  become: true 
-  shell: | 
-    cd ~/app/dist
-    pm2 stop default
-    pm2 start main.js
-  register: execute_node  
+# - name: "Start Backend"
+#   become: true 
+#   shell: | 
+#     cd ~/app/dist
+#     pm2 stop default
+#     pm2 start main.js
 
 # - name: Start backend
 #   shell:  |
