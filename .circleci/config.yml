@@ -210,12 +210,28 @@ jobs:
           keys: [backend-build]        
       - attach_workspace:
           at: ~/                     
+      - run: 
+          name: save environment variables to file
+          command: |
+            ls
+            cd backend
+            echo TYPEORM_HOST=$TYPEORM_HOST >> .env
+            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> .env
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> .env
+            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> .env
+            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> .env
+            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> .env
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> .env
+            echo TYPEORM_PORT=$TYPEORM_PORT >> .env
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> .env                       
       - run:
           name: Run migrations
           command: |
             cd backend  
+            cat .env        
             npm install    
-            npm run migrations > migrations_dump.txt         
+            npm run migrations > migrations_dump.txt  
+            cat migrations_dump.txt       
       - run:
           name: Send migration results to kvdb
           command: |
@@ -225,7 +241,7 @@ jobs:
             fi
       - save_cache:
           paths: [backend/node_modules]
-          key: backend-build            
+          key: backend-migrations            
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
 
@@ -282,10 +298,25 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update --no-cache sudo curl gzip tar nodejs npm aws-cli ansible      
+      - run: 
+          name: save environment variables to file
+          command: |
+            ls
+            cd backend
+            echo TYPEORM_HOST=$TYPEORM_HOST >> .env
+            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> .env
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> .env
+            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> .env
+            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> .env
+            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> .env
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> .env
+            echo TYPEORM_PORT=$TYPEORM_PORT >> .env
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> .env       
       - run:
           name: Deploy backend
           command: |
             cd backend
+            cat .env       
             npm install         
             npm run build  
        
@@ -328,22 +359,22 @@ jobs:
             else
               return 1
             fi            
-      # - run:
-      #     name: Backend smoke test
-      #     command: |
-      #       export BACKEND_IP=$(aws ec2 describe-instances \
-      #         --query 'Reservations[*].Instances[*].PublicIpAddress' \
-      #         --filters Name=tag:aws:cloudformation:stack-name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
-      #         --output text)
-      #       export API_URL="http://${BACKEND_IP}:3030"
-      #       echo "API_URL = ${API_URL}"
-      #       sleep 30s
-      #       if curl "${API_URL}/api/status" | grep "ok"
-      #       then
-      #         return 0
-      #       else
-      #         return 1
-      #       fi
+      - run:
+          name: Backend smoke test
+          command: |
+            export BACKEND_IP=$(aws ec2 describe-instances \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --filters Name=tag:aws:cloudformation:stack-name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
+              --output text)
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "API_URL = ${API_URL}"
+            sleep 30s
+            if curl "${API_URL}/api/status" | grep "ok"
+            then
+              return 0
+            else
+              return 1
+            fi
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations:
@@ -397,41 +428,41 @@ jobs:
       - revert-migrations:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
 
-  cleanup:
-    docker:
-      - image: amazon/aws-cli
-    steps:
-      - checkout
-      - run: yum install -y tar gzip
-      - attach_workspace:
-          at: ~/             
-      - run:  
-          name: Remove old environment
-          command: |
-            # Find Workflow IDs
-            # export OldWorkflowID=$(aws cloudformation \
-            #   list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
-            #   --no-paginate --output text)            
-            # echo OldWorkflowID: "${OldWorkflowID}"
-            echo CIRCLE_WORKFLOW_ID: "${CIRCLE_WORKFLOW_ID:0:7}"
-            echo OldWorkflowID = project/oldworkflowid.txt
-            echo OldWorkflowID = "${OldWorkflowID}"
+  # cleanup:
+  #   docker:
+  #     - image: amazon/aws-cli
+  #   steps:
+  #     - checkout
+  #     - run: yum install -y tar gzip
+  #     - attach_workspace:
+  #         at: ~/             
+  #     - run:  
+  #         name: Remove old environment
+  #         command: |
+  #           # Find Workflow IDs
+  #           # export OldWorkflowID=$(aws cloudformation \
+  #           #   list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+  #           #   --no-paginate --output text)            
+  #           # echo OldWorkflowID: "${OldWorkflowID}"
+  #           echo CIRCLE_WORKFLOW_ID: "${CIRCLE_WORKFLOW_ID:0:7}"
+  #           echo OldWorkflowID = project/oldworkflowid.txt
+  #           echo OldWorkflowID = "${OldWorkflowID}"
 
-            # Find Stacks
-            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
-              --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
-            echo Stack names: "${STACKS[@]}" 
+  #           # Find Stacks
+  #           export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
+  #             --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
+  #           echo Stack names: "${STACKS[@]}" 
 
-            # if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
-            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
-            then
-              echo "Remove Old Stacks"
-              aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
-              aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
-              aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
-            else
-              echo "cannot cleanup"
-            fi
+  #           # if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
+  #           if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+  #           then
+  #             echo "Remove Old Stacks"
+  #             aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+  #             aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+  #             aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+  #           else
+  #             echo "cannot cleanup"
+  #           fi
 
 workflows:
   default:
@@ -460,5 +491,5 @@ workflows:
           requires: [deploy-frontend, deploy-backend]  
       - cloudfront-update:
           requires: [smoke-test]  
-      - cleanup:
-          requires: [cloudfront-update]    
+      # - cleanup:
+      #     requires: [cloudfront-update]    
